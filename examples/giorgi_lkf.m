@@ -1,4 +1,4 @@
-function [x, P] = Giorgi_Kalman(timestamps, x1, P1, var_C, var_d, var_theta, var_gamma)
+function [x, P] = giorgi_kalman(timestamps, x1, P1, var_C, var_d, var_theta, var_gamma)
 
 %%  Giorgi's Kalman Filtering
 %   This simple source code implements the Giorgi's Kalman Filtering proposed in
