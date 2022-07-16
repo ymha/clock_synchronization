@@ -1,4 +1,4 @@
-function [x, X] = Ha_LKF(timestamps, gamma_bar, x1, X1, zeta1, var_eta, var_theta_bar, var_gamma_bar)
+function [x, X] = ha_lkf(timestamps, gamma_bar, x1, X1, zeta1, var_eta, var_theta_bar, var_gamma_bar)
 %%  Ha's LKF
 %   This simple source code implements the Ha's Kalman Filtering proposed in
 %   Y. Ha, et al., 
