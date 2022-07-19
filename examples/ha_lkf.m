@@ -1,10 +1,22 @@
-function [x, X] = ha_lkf(timestamps, gamma_bar, x1, X1, zeta1, var_eta, var_theta_bar, var_gamma_bar)
+function [x, X] = ha_lkf(timestamps, x1, X1, zeta1, var_eta, var_theta_bar, var_gamma_bar)
 
 %%  Ha's LKF
 %   This simple source code implements the Ha's Kalman Filtering proposed in
 %   Y. Ha, et al., 
 %   "Clock Offset Estimation for Systems with Asymmetric Packet Delays,"
 %   TechRxiv, 2022. 
+%
+%%  Function description
+%   Input: timestamps, gamma_bar, x1, X1, var_eta, var_theta_bar, var_gamma_bar
+%    - timestamps: IEEE 1588 PTP timestamps [t_{1,k}, C(t_{2,k}), C(t_{3,k}), t_{4,k}]
+%    - x1, X1, zeta1: initial condition of x, X, and zeta
+%    - var_eta: the step variance of random walk skew
+%    - var_theta_bar: uncertainty of clock offset observation
+%    - var_gamma_bar: uncertainty of clock skew observation  
+%  
+%   Output: x, X 
+%    - x: set of [offset skew]' vectors
+%    - X: set of cov(x(k))
 %
 %%  Assumptions of this example
 %   1. Local clock is running without a modification.
@@ -14,6 +26,10 @@ function [x, X] = ha_lkf(timestamps, gamma_bar, x1, X1, zeta1, var_eta, var_thet
 %   3. Hyper-parameters are given by the INLA or other optimizations.
 %      Hyper-parameters consist of {var_theta_bar, var_gamma_bar, var_eta}
 %     
+%%  Notation
+%   t1_k = t_{1,k},    t4_k = t_{4,k}
+%   t2_k = C(t_{2,k}), t3_k = C(t_{3,k})
+%
 %%  State Space Model
 %   y_k = C_k*x_k   + D_k*u_{y,k} + v_k,    v_k ~ N(0,R)   by Eq.(18a)
 %   x_k = A_k*x_{k-1} + B_k*u_{x_k} + w_k,  w_k ~ N(0,Q)   by Eq.(18b)
@@ -23,7 +39,7 @@ function [x, X] = ha_lkf(timestamps, gamma_bar, x1, X1, zeta1, var_eta, var_thet
 %   zeta_k = zeta_{k-1} + dzeta_k
 %
 %   dzeta_k = 2*dt1_k*gamma_k + [1, 1]*alpha_k + [-1, -1]*beta_k   by Eq.(18d)
-%   where dti_k = ti_k - ti_{k,1} for i \in {1,2,3,4},
+%   where dti_k = t_{i,k} - t_{i,k-1} for i \n \{1,2,3,4\},
 %         alpha_k = [dt1_k; dt4_k], and
 %         beta_k  = [dt2_k; dt3_k].
 %
@@ -89,20 +105,9 @@ function [x, X] = ha_lkf(timestamps, gamma_bar, x1, X1, zeta1, var_eta, var_thet
 %   err_{k-1} = y_hat_{k-1} - y_bar{k-1}
 %
 %% Implementation
-%
-%  Input: timestamps, gamma_bar, x1, X1, var_eta, var_theta_bar, var_gamma_bar
-%   - timestamps: IEEE 1588 PTP timestamps [t1 C(t2) C(t3) t4]
-%   - gamma_bar: observation of clock skew
-%   - x1, X1, zeta1: initial condition of x, X, and zeta
-%   - var_eta: the step variance of random walk skew
-%   - var_theta_bar: uncertainty of clock offset observation
-%   - var_gamma_bar: uncertainty of clock skew observation  
-%  
-%  Output: x, X 
-%   - x: set of [offset skew]' vectors
-%   - X: set of cov(x(k))
-%
 %% 1. Initialization
+global gamma_bar;
+
 [N, ~] = size(timestamps);   %   N is the number of observations
 
 x    = zeros(length(x1), N); %   save the history for debugginge slave clock

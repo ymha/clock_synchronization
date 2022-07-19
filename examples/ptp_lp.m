@@ -6,17 +6,17 @@ function [gamma, theta, x_ub, x_lb] = ptp_lp(timestamps)
 %   “PTP-LP: Using Linear Programming to Increase the Delay Robustness of IEEE 1588 PTP,” 
 %   in 2018 IEEE Global Communications Conference, IEEE, 2018.
 %
-%% Implementation
-%
-%  Input: timestamps
-%   - timestamps: IEEE 1588 PTP timestamps [t1 C(t2) C(t3) t4]
+%%  Function description
+%   Input: timestamps
+%    - timestamps: set of IEEE 1588 PTP timestamps [t1 C(t2) C(t3) t4]
 %  
-%  Output: gamma, theta, x_ub, x_lb
-%   - gamma: clock skew
-%   - theta: clock offset
-%   - x_ub : information related to the upper bound of the slave clock
-%   - x_lb : information related to the lower bound of the slave clock
+%   Output: gamma, theta, x_ub, x_lb
+%    - gamma: clock skew
+%    - theta: clock offset
+%    - x_ub : information related to the upper bound of the slave clock
+%    - x_lb : information related to the lower bound of the slave clock
 %
+%%  Implementation
 % set the number of timestamps
 [N,~] = size(timestamps);
 

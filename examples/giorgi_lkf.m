@@ -6,8 +6,22 @@ function [x, P] = giorgi_kalman(timestamps, x1, P1, var_C, var_d, var_theta, var
 %   "Performance Analysis of Kalman-Filter-Based Clock Synchronization in IEEE 1588 Networks," 
 %   IEEE Transactions on Instrumentation and Measurement, vol. 60, no. 8, pp. 2902–2909, Aug. 2011.
 %
+%%  Function description
+%   Input: timestamps, x1, P1, var_T, var_C, var_d, var_theta, var_gamma
+%    - timestamps: set of the IEEE 1588 PTP timestamps [t_1, C(t_2), C(t_3), t_4]
+%    - x1: initial value of x, x(1)
+%    - P1: initial matrix of P, P{1}
+%    - var_C: timestamping uncertainty of the slave
+%    - var_d: uncertainty of the asymmetry
+%    - var_theta: process noise of the offset  
+%    - var_gamma: process noise of the skew
+%  
+%   Output: x, P 
+%    - x: set of [offset skew]' vectors
+%    - P: set of cov(x(n))
+%
 %%  Assumption of this implementation  
-%   - Local clock is running without modification: u(n) = [0 0]'.
+%   1. Local clock is running without modification: u(n) = [0 0]'.
 %
 %%  State Space Model defined by Eq.(23) and (26)
 %   z(n) = Hx(n) + v(n), v(n) ~ N(0, R(n))
@@ -60,21 +74,7 @@ function [x, P] = giorgi_kalman(timestamps, x1, P1, var_C, var_d, var_theta, var
 %   By Eq.(16) and Eq.(17) 
 %   : z_M(n) = [theta_M(n) gamma_M(n)]'
 %
-%% Implementation
-%
-%  Input: timestamps, x1, P1, var_T, var_C, var_d, var_theta, var_gamma
-%   - timestamps: IEEE 1588 PTP timestamps [t1 C(t2) C(t3) t4]
-%   - x1: initial value of x, x(1)
-%   - P1: initial matrix of P, P{1}
-%   - var_C: timestamping uncertainty of the slave
-%   - var_d: uncertainty of the asymmetry
-%   - var_theta: process noise of the offset  
-%   - var_gamma: process noise of the skew
-%  
-%  Output: x, P 
-%   - x: set of [offset skew]' vectors
-%   - P: set of cov(x(n))
-%
+%%  Implementation
 %%  1. Initialize
 
 N = length(timestamps); % total length of the observations

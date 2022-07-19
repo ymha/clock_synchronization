@@ -1,6 +1,6 @@
 function clock_offset = ptp(timestamps)
 
-%%  Clock offset estimation of the IEEE 1588 precision time protocol (PTP)
+%%  Clock offset estimation of the IEEE 1588-2008 precision time protocol (PTP)
 %   This simple source code implements the PTP offset estimation described in
 %   "IEEE Standard for a Precision Clock Synchronization Protocol for 
 %	 Networked Measurement and Control Systems,"
@@ -8,17 +8,16 @@ function clock_offset = ptp(timestamps)
 %	(Working Group: PNCS - Precise Networked Clock Synchronization)
 %
 
-%% Implementation:
+%%  Function description:
+%   Input: timestamps
+%    - timestamps: set of the IEEE 1588 PTP timestamps [t1 C(t2) C(t3) t4 r_s r_d]
+%                  where r_s and r_d are the residence time 
+%									  of sync and delay-req messages, respectively.
+%                  (r_s and r_d were recoded by the CISCO IE-3000-4TC-E)
 %
-%  Input: timestamps
-%   - timestamps: IEEE 1588 PTP timestamps [t1 C(t2) C(t3) t4 r_s, r_d]
-%                 where r_s and r_d are the residence time 
-%											  of sync and delay-req messages, respectively.
-%				  (r_s and r_d were recoded by the CISCO IE-3000-4TC-E)
+%   Output: clock_offset
 %
-%  Output: clock_offset
-%
-
+%%  Implementation
 t1 = timestamps(:,1) + timestamps(:,5);		%	timestamps(:,5): residence time of sync message
 t2 = timestamps(:,2);
 t3 = timestamps(:,3);
