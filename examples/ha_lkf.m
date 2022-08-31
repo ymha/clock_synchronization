@@ -1,4 +1,4 @@
-function [x, X] = ha_lkf(timestamps, x1, X1, zeta1, var_eta, var_theta_bar, var_gamma_bar)
+function [x, X] = ha_lkf(timestamps, gamma_bar, x1, X1, zeta1, var_eta, var_theta_bar, var_gamma_bar)
 
 %%  Ha's LKF
 %   This simple source code implements the Ha's Kalman Filtering proposed in
@@ -56,7 +56,7 @@ function [x, X] = ha_lkf(timestamps, x1, X1, zeta1, var_eta, var_theta_bar, var_
 %   
 %   Eq.(23b) defines Q_k as follows:
 %     Q_k = diag([var_{w_theta,k}, var_{w_gamma,k}])
-%     Q_k(1,2) = ( eta_var * dt1_k.^2 ) / 2
+%     Q_k(1,2) = ( var_eta * dt1_k.^2 ) / 2
 %     Q_k(2,1) = Q(1,2)
 %
 %     S_k(1,1) = Q(1,1)
@@ -106,7 +106,6 @@ function [x, X] = ha_lkf(timestamps, x1, X1, zeta1, var_eta, var_theta_bar, var_
 %
 %% Implementation
 %% 1. Initialization
-global gamma_bar;
 
 [N, ~] = size(timestamps);   %   N is the number of observations
 
@@ -145,16 +144,14 @@ for k = 1:N
         
         S_k = zeros(2,2);
         Q_k = zeros(size(X));
-        R_k = zeros(2,2);
+        R_k = V;
 
         err_k = zeros(size(x1));
     else        
         % 2.1. explore observation 
-        packet_delay = 0.5 * ( (t4_k - t1_k) - (t3_k - t2_k) );
-        ptp_offset = (t2_k - t1_k) - packet_delay;
-
-        theta_bar = ptp_offset;
-        y_bar_k = [theta_bar; gamma_bar(k)];
+        theta_bar = ptp([t1_k, t2_k, t3_k, t4_k]);
+        
+        y_bar_k = [theta_bar; gamma_bar(k-1)];
 
         % 2.2. predict zeta_k|y_bar_{k-1}
         dt1_k = t1_k - t1_old;
@@ -166,19 +163,19 @@ for k = 1:N
         beta_k  = [dt2_k; dt3_k];
 
         gamma_k = x(2,k-1);
-        var_gamma_k = X{i-1}(2,2);
+        var_gamma_k = X{k-1}(2,2);
         
         % by Eq.(18d)
         dzeta_k_k_1 = 2*dt1_k*gamma_k + [1, 1]*alpha_k + [-1, -1]*beta_k;
         var_dzeta_k = 4*( (dt1_k)^2*var_gamma_k + (var_eta*(dt1_k)^3)/3 );
         
         % predict zeta_k
-        zeta_k_pred = zeta(k-1) + dzeta_k_k_1;        
+        zeta_k_pred = zeta(k-1) + dzeta_k_k_1;
 
         % 2.3. compute u_{y,k}
-        u_y_k = [-zeta_k_pred/2; 0];
+        u_y_k = [-0.5*zeta_k_pred; 0];
         
-        u_x_k = [0; 0];     % by assumption 1
+        u_x_k = [0; 0];     %   by assumption 1
         V_k = V;            %   we do not update V_k in this example
                             %   role of INLA or sequential INLA
 
@@ -192,12 +189,12 @@ for k = 1:N
 
         % by Eq.(23b)
         Q_k = diag( [var_w_theta_k, var_w_gamma_k] );
-        Q_k(1,2) = ( eta_var * dt1_k.^2 ) / 2;
-        Q_k(2,1) = Q(1,2);
+        Q_k(1,2) = ( var_eta * dt1_k.^2 ) / 2;
+        Q_k(2,1) = Q_k(1,2);
 
-        S_k(1,1) = Q(1,1);
+        S_k(1,1) = Q_k(1,1);
         S_k(1,2) = 0;
-        S_k(2,1) = Q(2,1);
+        S_k(2,1) = Q_k(2,1);
         S_k(2,2) = 0;
 
         % 2.5. compute A,B,C,D
@@ -206,8 +203,8 @@ for k = 1:N
         D_k = [1, 0; 0, 0];
         
         % by Eq.(21)
-        A_k = [1,  dt1_k; 0, 1];
-        B_k = [-1 -dt1_k; 0, -1];  
+        A_k = [ 1,  dt1_k; 0, 1];
+        B_k = [-1, -dt1_k; 0, -1];  
 
         % 2.6. do predict
         x_hat_k = A_k*x(:,k-1) + B_k*u_x_k + S_old*inv(R_old)*err_old;

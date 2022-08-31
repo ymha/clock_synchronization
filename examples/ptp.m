@@ -24,7 +24,7 @@ packet_delay = 0.5 * ( (t4 - t1) - (t3 - t2) );
 if packet_delay <= 0 
 	clock_offset = 0;
 else
-	clock_offset = (t2 - t1) - pd;
+	clock_offset = (t2 - t1) - packet_delay;
 end
 
 end

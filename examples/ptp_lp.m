@@ -1,7 +1,41 @@
-function [gamma, theta, x_ub, x_lb] = ptp_lp(timestamps)
+function clock_offset = ptp_lp(timestamps)
 
 %%  PTP-LP
-%   This simple source code implements the PTP-LP proposed in
+%   This simple source code simulates the PTP-LP proposed in
+%   H. Puttnies, P. Danielis, and D. Timmermann, 
+%   “PTP-LP: Using Linear Programming to Increase the Delay Robustness of IEEE 1588 PTP,” 
+%   in 2018 IEEE Global Communications Conference, IEEE, 2018.
+%
+%%  Function description
+%   Input: timestamps
+%    - timestamps: set of IEEE 1588 PTP timestamps [t1 C(t2) C(t3) t4]
+%  
+%   Output: clock_offset
+%    - gamma: clock skew
+%    - theta: clock offset
+%    - x_ub : information related to the upper bound of the slave clock
+%    - x_lb : information related to the lower bound of the slave clock
+%
+%%  Implementation
+[T, ~] = size(timestamps);
+
+clock_offset = zeros(T,1);
+
+for t = 1:T
+    if t == 1
+        %   lp cannot be used for one data
+        clock_offset(t,1) = ptp(timestamps(t,:));
+    else
+        [~, theta, ~, ~] = lp_func(timestamps(1:t,:));
+        clock_offset(t,1) = theta;
+    end
+end
+
+end
+
+function [gamma, theta, x_ub, x_lb] = lp_func(timestamps)
+%%  PTP-LP
+%   This simple source code implements the function of PTP-LP proposed in
 %   H. Puttnies, P. Danielis, and D. Timmermann, 
 %   “PTP-LP: Using Linear Programming to Increase the Delay Robustness of IEEE 1588 PTP,” 
 %   in 2018 IEEE Global Communications Conference, IEEE, 2018.
