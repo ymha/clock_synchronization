@@ -1,4 +1,4 @@
-function [x, P] = giorgi_kalman(timestamps, x1, P1, var_C, var_d, var_theta, var_gamma)
+function [x, P] = giorgi_lkf(timestamps, x1, P1, var_C, var_d, var_theta, var_gamma)
 
 %%  Giorgi's Kalman Filtering
 %   This simple source code implements the Giorgi's Kalman Filtering proposed in
@@ -112,8 +112,9 @@ for n = 1:N
 
     if n == 1
 
-        packet_delay = 0.5*( (t4-t1) - (t3-t2) );
-        theta_M_old = (t2 - t1) - packet_delay;
+%         packet_delay = 0.5*( (t4-t1) - (t3-t2) );       
+%         theta_M_old = (t2 - t1) - packet_delay;
+        theta_M_old = ptp([t1,t2,t3,t4]);
         t1_old = t1;
 
     else
